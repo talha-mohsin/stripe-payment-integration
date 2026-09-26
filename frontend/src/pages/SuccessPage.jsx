@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+import { apiRequest } from "../api";
 const MAX_ATTEMPTS = 10;
 const POLL_INTERVAL_MS = 2000;
 
@@ -31,22 +30,7 @@ export default function SuccessPage() {
 
     async function checkOrder(attempt = 1) {
       try {
-        const response = await fetch(
-          `${API_URL}/api/orders/session/${encodeURIComponent(sessionId)}`
-        );
-        const contentType = response.headers.get("content-type") || "";
-
-        if (!contentType.includes("application/json")) {
-          throw new Error(
-            `Order status API returned an unexpected response (${response.status}). Check that the backend is running at ${API_URL}.`
-          );
-        }
-
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.message || "Unable to retrieve order");
-        }
+        const data = await apiRequest(`/api/orders/session/${encodeURIComponent(sessionId)}`);
 
         if (cancelled) return;
 

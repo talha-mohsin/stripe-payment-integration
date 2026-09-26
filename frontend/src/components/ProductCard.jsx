@@ -19,7 +19,7 @@ export default function ProductCard({
       <div className="product-image-wrap">
         <img
           className="product-image"
-          src={product.img}
+          src={product.imageUrl || product.img}
           alt={product.name}
           loading="lazy"
         />

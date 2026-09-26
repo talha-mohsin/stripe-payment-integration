@@ -1,43 +1,36 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ProductCard from "../components/ProductCard";
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-
-const PRODUCTS = [
-  {
-    id: "leather-jacket",
-    name: "Leather Jacket",
-    description: "A timeless layer with a clean silhouette and everyday comfort.",
-    category: "Outerwear",
-    img: "https://www.thejacketmaker.pk/cdn/shop/files/Men_s_Lavendard_Brown_Leather_Biker_Jacket-2_746fba86-1fbc-43f9-a9d5-1e400876d80d_2048x.jpg?v=1760635123",
-    unitAmount: 4900,
-    currency: "usd",
-  },
-  {
-    id: "man-formal-dress",
-    name: "Formal Dress For Man",
-    description: "A refined occasion-ready look, tailored for memorable moments.",
-    category: "Menswear",
-    img: "https://www.shaadidukaan.com/vogue/wp-content/uploads/2026/01/Formal-Dress-for-Men-for-Wedding-Summer-2.webp",
-    unitAmount: 2900,
-    currency: "usd",
-  },
-  {
-    id: "gold-watch",
-    name: "Gold Watch For Man",
-    description: "A polished gold-tone finish that brings a little extra to every day.",
-    category: "Accessories",
-    img: "https://www.pakstyle.pk/cdn/shop/files/rizen-oyster-perpetual-watch-18800_3.webp?v=1766569789",
-    unitAmount: 7900,
-    currency: "usd",
-  },
-];
+import { apiRequest } from "../api";
 
 export default function HomePage() {
   const [email, setEmail] = useState("");
   const [loadingProductId, setLoadingProductId] = useState("");
   const [quantities, setQuantities] = useState({});
   const [error, setError] = useState("");
+  const [products, setProducts] = useState([]);
+  const [productsLoading, setProductsLoading] = useState(true);
+  const [productsError, setProductsError] = useState("");
+
+  async function loadProducts() {
+    setProductsLoading(true);
+    setProductsError("");
+    try {
+      const data = await apiRequest("/api/products");
+      setProducts((data.products || []).map((product) => ({
+        ...product,
+        id: product.id || product._id,
+        img: product.imageUrl || product.img,
+      })));
+    } catch (requestError) {
+      setProductsError(requestError.message);
+    } finally {
+      setProductsLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    loadProducts();
+  }, []);
 
   function changeQuantity(productId, quantity) {
     setQuantities((currentQuantities) => ({
@@ -51,30 +44,14 @@ export default function HomePage() {
       setError("");
       setLoadingProductId(productId);
 
-      const response = await fetch(
-        `${API_URL}/api/payments/create-checkout-session`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            customerEmail: email.trim() || undefined,
-            items: [
-              {
-                productId,
-                quantity,
-              },
-            ],
-          }),
-        },
-      );
-
-      const data = await response.json();
-
-      if (!response.ok || !data.checkoutUrl) {
-        throw new Error(data.message || "Unable to start checkout");
-      }
+      const data = await apiRequest("/api/payments/create-checkout-session", {
+        method: "POST",
+        body: JSON.stringify({
+          customerEmail: email.trim() || undefined,
+          items: [{ productId, quantity }],
+        }),
+      });
+      if (!data.checkoutUrl) throw new Error(data.message || "Unable to start checkout");
 
       window.location.assign(data.checkoutUrl);
     } catch (requestError) {
@@ -112,9 +89,19 @@ export default function HomePage() {
       </div>
 
       {error && <div className="error-box" role="alert">{error}</div>}
+      {productsError && (
+        <div className="error-box" role="alert">
+          Unable to load products: {productsError}{" "}
+          <button className="inline-retry" type="button" onClick={loadProducts}>Try again</button>
+        </div>
+      )}
 
       <div className="product-grid">
-        {PRODUCTS.map((product) => (
+        {productsLoading ? (
+          <p className="store-message" aria-live="polite">Loading products…</p>
+        ) : productsError ? null : products.length === 0 ? (
+          <p className="store-message">There are no products available right now.</p>
+        ) : products.map((product) => (
           <ProductCard
             key={product.id}
             product={product}

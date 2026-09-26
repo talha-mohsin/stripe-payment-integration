@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+import { apiRequest } from "../api";
 
 export default function CancelPage() {
   const [searchParams] = useSearchParams();
@@ -13,14 +12,8 @@ export default function CancelPage() {
 
     async function cancelPendingOrder() {
       try {
-        const response = await fetch(
-          `${API_URL}/api/orders/${encodeURIComponent(orderId)}/cancel`,
-          { method: "POST" }
-        );
-
-        if (response.ok) {
-          setMessage("Checkout was cancelled and the pending order was closed.");
-        }
+        await apiRequest(`/api/orders/${encodeURIComponent(orderId)}/cancel`, { method: "POST" });
+        setMessage("Checkout was cancelled and the pending order was closed.");
       } catch {
         // The page can still display cancellation even if this convenience call fails.
       }

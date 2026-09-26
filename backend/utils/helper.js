@@ -1,39 +1,32 @@
-const PRODUCT_CATALOG = {
-  "leather-jacket": {
-    id: "leather-jacket",
-    name: "Leather Jacket",
-    img: "https://www.thejacketmaker.pk/cdn/shop/files/Men_s_Lavendard_Brown_Leather_Biker_Jacket-2_746fba86-1fbc-43f9-a9d5-1e400876d80d_2048x.jpg?v=1760635123",
-    unitAmount: 4900,
-    currency: "usd",
-  },
+import mongoose from "mongoose";
+import Product from "../models/Product.js";
 
-  "man-formal-dress": {
-    id: "man-formal-dress",
-    name: "Formal Dress For Man",
-    img: "https://www.shaadidukaan.com/vogue/wp-content/uploads/2026/01/Formal-Dress-for-Men-for-Wedding-Summer-2.webp",
-    unitAmount: 2900,
-    currency: "usd",
-  },
-
-  "gold-watch": {
-    id: "gold-watch",
-    name: "Gold Watch For Man",
-    img: "https://www.pakstyle.pk/cdn/shop/files/rizen-oyster-perpetual-watch-18800_3.webp?v=1766569789",
-    unitAmount: 7900,
-    currency: "usd",
-  },
-};
-
-export function normalizeCartItems(clientItems) {
+export async function normalizeCartItems(clientItems) {
   if (!Array.isArray(clientItems) || clientItems.length === 0) {
     throw new Error("At least one item is required");
   }
 
+  const productIds = clientItems.map((item) => item?.productId);
+  if (
+    productIds.some(
+      (productId) =>
+        typeof productId !== "string" || !mongoose.isValidObjectId(productId),
+    )
+  ) {
+    throw new Error("Invalid product");
+  }
+
+  const products = await Product.find({
+    _id: { $in: productIds },
+    active: true,
+  });
+  const productMap = new Map(products.map((product) => [product.id, product]));
+
   return clientItems.map((clientItem) => {
-    const product = PRODUCT_CATALOG[clientItem.productId];
+    const product = productMap.get(clientItem.productId);
 
     if (!product) {
-      throw new Error(`Invalid product: ${clientItem.productId}`);
+      throw new Error("Product is unavailable");
     }
 
     const quantity = Number(clientItem.quantity);
@@ -43,7 +36,7 @@ export function normalizeCartItems(clientItems) {
     }
 
     return {
-      productId: clientItem.productId,
+      productId: product.id,
       name: product.name,
       quantity,
       unitAmount: product.unitAmount,
