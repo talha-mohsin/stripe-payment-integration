@@ -1,21 +1,24 @@
 const PRODUCT_CATALOG = {
-  "node-course": {
-    id: "node-course",
-    name: "Node.js Backend Masterclass",
+  "leather-jacket": {
+    id: "leather-jacket",
+    name: "Leather Jacket",
+    img: "https://www.thejacketmaker.pk/cdn/shop/files/Men_s_Lavendard_Brown_Leather_Biker_Jacket-2_746fba86-1fbc-43f9-a9d5-1e400876d80d_2048x.jpg?v=1760635123",
     unitAmount: 4900,
     currency: "usd",
   },
 
-  "react-course": {
-    id: "react-course",
-    name: "React Fundamentals",
+  "man-formal-dress": {
+    id: "man-formal-dress",
+    name: "Formal Dress For Man",
+    img: "https://www.shaadidukaan.com/vogue/wp-content/uploads/2026/01/Formal-Dress-for-Men-for-Wedding-Summer-2.webp",
     unitAmount: 2900,
     currency: "usd",
   },
 
-  "mern-course": {
-    id: "mern-course",
-    name: "Complete MERN Stack Program",
+  "gold-watch": {
+    id: "gold-watch",
+    name: "Gold Watch For Man",
+    img: "https://www.pakstyle.pk/cdn/shop/files/rizen-oyster-perpetual-watch-18800_3.webp?v=1766569789",
     unitAmount: 7900,
     currency: "usd",
   },

@@ -9,9 +9,10 @@ export default function App() {
     <div className="app-shell">
       <header className="site-header">
         <Link className="brand" to="/">
-          Stripe Classroom
+          <span className="brand-mark" aria-hidden="true">S</span>
+          <span>Goodform<span className="brand-period">.</span></span>
         </Link>
-        <span className="mode-badge">Test Mode</span>
+        <span className="mode-badge"><span className="status-dot" /> Demo store</span>
       </header>
 
       <main>

@@ -34,6 +34,14 @@ export default function SuccessPage() {
         const response = await fetch(
           `${API_URL}/api/orders/session/${encodeURIComponent(sessionId)}`
         );
+        const contentType = response.headers.get("content-type") || "";
+
+        if (!contentType.includes("application/json")) {
+          throw new Error(
+            `Order status API returned an unexpected response (${response.status}). Check that the backend is running at ${API_URL}.`
+          );
+        }
+
         const data = await response.json();
 
         if (!response.ok) {
@@ -41,6 +49,10 @@ export default function SuccessPage() {
         }
 
         if (cancelled) return;
+
+        if (!data.order) {
+          throw new Error("The backend returned no order for this Checkout Session.");
+        }
 
         setOrder(data.order);
 
@@ -108,7 +120,7 @@ export default function SuccessPage() {
         )}
 
         <Link className="secondary-button" to="/">
-          Return to courses
+          Return to products
         </Link>
       </div>
     </section>
